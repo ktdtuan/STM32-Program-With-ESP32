@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Firmware Manager</title>
+
+	<style>
+		:root {
+			--bg: #020617;
+			--card: #0f172a;
+			--input: #020617;
+			--border: #1e293b;
+			--primary: #38bdf8;
+			--text: #e5e7eb;
+			--muted: #94a3b8;
+			--green: #22c55e;
+			--red: #ef4444
+		}
+		* {
+			box-sizing: border-box;
+			font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif
+		}
+		body {
+			margin: 0;
+			padding: 16px;
+			background: linear-gradient(180deg, #020617, #0f172a);
+			color: var(--text)
+		}
+		.container {
+			max-width: 440px;
+			margin: auto
+		}
+		.tabs {
+			display: flex;
+			background: var(--card);
+			border-radius: 12px;
+			overflow: hidden;
+			margin-bottom: 12px
+		}
+		.tab {
+			flex: 1;
+			text-align: center;
+			padding: 10px 0;
+			font-size: 14px;
+			color: var(--muted);
+			cursor: pointer
+		}
+		.tab.active {
+			background: linear-gradient(135deg, #38bdf8, #0ea5e9);
+			color: #020617;
+			font-weight: 600
+		}
+		h1 {
+			text-align: center;
+			font-size: 20px;
+			margin-bottom: 16px;
+			color: var(--primary)
+		}
+		.card {
+			background: var(--card);
+			border-radius: 14px;
+			padding: 16px;
+			box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+			margin-bottom: 16px
+		}
+		.group-title {
+			font-size: 13px;
+			color: var(--primary);
+			margin-bottom: 12px;
+			text-transform: uppercase
+		}
+		.sub-group {
+			border: 1px solid var(--border);
+			border-radius: 12px;
+			padding: 12px;
+			margin-bottom: 12px
+		}
+		.group-grid {
+			display: grid;
+			grid-template-columns: max-content 1fr auto;
+			gap: 10px;
+			align-items: center;
+		}
+		.group-grid label {
+			font-size: 13px;
+			color: #cbd5f5
+		}
+		.fw-manage-grid #fs_files {
+			grid-column: 2 / 4;
+		}
+		.fw-manage-grid .fw-actions {
+			grid-column: 2 / 4;
+			display: flex;
+			justify-content: center;
+			gap: 10px;
+		}
+		.fw-manage-grid .fw-actions button {
+			height: 42px;
+			width: 92px;
+		}
+		.group-grid input,
+		.sub-group select {
+			width: 100%;
+			padding: 10px 12px;
+			border-radius: 10px;
+			border: 1px solid var(--border);
+			background: var(--input);
+			color: var(--text);
+			font-size: 14px;
+		}
+		.connect-btn {
+			grid-row: 1 / span 2;
+			grid-column: 3;
+			align-self: center;
+			justify-self: end;
+			height: 42px;
+			width: 85px;
+		}
+		.flash-grid .action-col {
+			grid-row: 1 / span 3;
+			grid-column: 3;
+			display: flex;
+			flex-direction: column;
+			gap: 10px;
+			align-self: center;
+			justify-self: end;
+		}
+		.flash-grid .action-col button {
+			height: 42px;
+			width: 92px;
+		}
+		.group-divider {
+			border-top: 1px solid var(--border);
+			margin: 12px 0;
+		}
+		.lock-btn {
+			height: 40px;
+			width: 92px;
+			justify-self: end;
+		}
+		button {
+			padding: 10px 14px;
+			border-radius: 10px;
+			border: none;
+			cursor: pointer;
+			font-weight: 600;
+			background: linear-gradient(135deg, #38bdf8, #0ea5e9);
+			color: #020617
+		}
+		button:hover {
+			transform: translateY(-1px);
+			box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3)
+		}
+		button:disabled {
+			opacity: 0.6;
+			cursor: not-allowed;
+			transform: none;
+			box-shadow: none;
+		}
+		.btn-danger {
+			background: linear-gradient(135deg, #ef4444, #dc2626);
+			color: white
+		}
+		.notify-wrap {
+			position: fixed;
+			top: 12px;
+			left: 50%;
+			transform: translateX(-50%);
+			z-index: 1000;
+			pointer-events: none;
+		}
+		.notify {
+			display: none;
+			padding: 10px 14px;
+			border-radius: 10px;
+			font-size: 13px;
+			font-weight: 600;
+			color: #e5e7eb;
+			background: #0f172a;
+			border: 1px solid #334155;
+			box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
+		}
+		.notify.error {
+			background: #7f1d1d;
+			border-color: #ef4444;
+		}
+		.notify.ok {
+			background: #14532d;
+			border-color: #22c55e;
+		}
+		.button-row {
+			display: flex;
+			justify-content: space-between;
+			margin-top: 12px
+		}
+		.progress {
+			width: 100%;
+			height: 10px;
+			background: #1e293b;
+			border-radius: 6px;
+			overflow: hidden;
+			margin-top: 12px
+		}
+		.progress-bar {
+			height: 100%;
+			width: 0%;
+			background: linear-gradient(90deg, #38bdf8, #0ea5e9);
+			transition: width .3s
+		}
+		.footer {
+			text-align: center;
+			font-size: 11px;
+			opacity: .5;
+			margin-top: 10px
+		}
+	</style>
+</head>
+
+<body>
+	<div class="notify-wrap">
+		<div id="notify" class="notify"></div>
+	</div>
+	<div class="container">
+		<h1>Firmware Manager</h1>
+		<div class="tabs">
+			<div class="tab" onclick="navigateTo('Dashboard.html')">Dashboard</div>
+			<div class="tab" onclick="navigateTo('Scenario.html')">Scenario</div>
+			<div class="tab active">Manual</div>
+		</div>
+		<!-- FIRMWARE FLASH -->
+		<div class="card">
+			<div class="group-title">Firmware Flash</div>
+			<div class="sub-group">
+				<div class="group-grid">
+					<label>Chip</label>
+					<input id="chip" readonly>
+					<button id="btn_connect" class="connect-btn" onclick="connectTarget()">Connect</button>
+					<label>Flash Size</label>
+					<input id="size" readonly>
+				</div>
+			</div>
+
+			<div class="sub-group">
+				<div class="group-grid flash-grid">
+					<label>Firmware</label>
+					<select id="firmware"></select>
+					<div class="action-col">
+						<button id="btn_download" onclick="programFlash()">Download</button>
+						<button id="btn_erase" class="btn-danger" onclick="eraseFlash()">Erase</button>
+					</div>
+					<label>Algorithm</label>
+					<select id="algorithm"></select>
+					<label>Address</label>
+					<input id="address" value="0x08000000">
+				</div>
+				<div class="group-divider"></div>
+				<div class="group-grid lock-grid">
+					<label>Lock Chip</label>
+					<select id="lock_level">
+						<option value="0" selected>Level 0 (Unlock)</option>
+						<option value="1">Level 1 (Read Protect)</option>
+						<option value="2">Level 2 (Permanent Lock)</option>
+					</select>
+					<button id="btn_lock" class="lock-btn" onclick="lockChip()">Lock Chip</button>
+				</div>
+				<div class="progress">
+					<div class="progress-bar" id="progress"></div>
+				</div>
+			</div>
+		</div>
+
+		<!-- FIRMWARE MANAGEMENT -->
+		<div class="card">
+			<div class="group-title">Firmware Management</div>
+			<div class="sub-group">
+				<div class="group-grid fw-manage-grid">
+					<label>Storage</label>
+					<select id="fs_files"></select>
+					<div class="fw-actions">
+						<button id="btn_upload" onclick="uploadFirmware()">Upload</button>
+						<button id="btn_delete" class="btn-danger" onclick="deleteFirmware()">Delete</button>
+					</div>
+				</div>
+				<input type="file" id="file_input" accept=".hex,.bin,.flm" style="display:none">
+			</div>
+		</div>
+		<div class="footer">
+			Firmware Manager · ESP32
+		</div>
+	</div>
+
+	<script>
+		let notifyTimer = null
+
+		function showNotify(text, isError) {
+			const el = document.getElementById("notify")
+			if (!el || !text) {
+				return
+			}
+			el.textContent = text
+			el.className = "notify " + (isError ? "error" : "ok")
+			el.style.display = "block"
+			if (notifyTimer) {
+				clearTimeout(notifyTimer)
+			}
+			notifyTimer = setTimeout(function () {
+				el.style.display = "none"
+			}, 2200)
+		}
+
+		function logApi(tag, payload) {
+			console.log("[FWM] " + tag, payload)
+		}
+
+		function isValidBaseFileName(name) {
+			return typeof name === "string" && /^[A-Za-z0-9._-]+$/.test(name)
+		}
+
+		function setButtonBusy(buttonId, busy, busyText) {
+			const btn = document.getElementById(buttonId)
+			if (!btn) {
+				return
+			}
+			if (busy) {
+				if (!btn.dataset.originalText) {
+					btn.dataset.originalText = btn.textContent
+				}
+				btn.disabled = true
+				btn.textContent = busyText || "Processing..."
+			} else {
+				btn.disabled = false
+				btn.textContent = btn.dataset.originalText || btn.textContent
+			}
+		}
+
+		async function connectTarget() {
+			setButtonBusy("btn_connect", true, "Connecting...")
+			logApi("GET /connect -> send", null)
+			try {
+				const r = await fetch("/connect")
+				logApi("GET /connect <- status", r.status)
+				const d = await r.json()
+				logApi("GET /connect <- body", d)
+				document.getElementById("chip").value = d.chip
+				document.getElementById("size").value = d.size
+				if(d.size !== "0 KB" && d.chip !== "0x00000000" ) {
+					showNotify("Connected", false)
+				}
+				else {
+					showNotify("No target detected", true)
+				}
+			} catch (e) {
+				console.error("[FWM] GET /connect failed", e)
+				showNotify("Error: " + e.message, true)
+			} finally {
+				setButtonBusy("btn_connect", false)
+			}
+		}
+
+		async function programFlash() {
+			let fw = document.getElementById("firmware").value
+			let algorithm = document.getElementById("algorithm").value
+			let addr = document.getElementById("address").value
+			if (!fw) {
+				showNotify("No firmware", true)
+				return
+			}
+
+			setButtonBusy("btn_download", true, "Running...")
+			showNotify("Received command: Download", false)
+
+			const payload = { firmware: fw, algorithm: algorithm, address: addr }
+			logApi("POST /flash -> send", payload)
+
+			let bar = document.getElementById("progress")
+			bar.style.width = "0%"
+			bar.style.background = "linear-gradient(90deg, #38bdf8, #0ea5e9)"
+			let progress = 0
+			let timer = setInterval(() => {
+				progress += 5
+				if (progress >= 90) {
+					progress = 90
+					clearInterval(timer)
+				}
+				bar.style.width = progress + "%"
+			}, 200)
+
+			try {
+				const r = await fetch("/flash", {
+					method: "POST",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify(payload)
+				})
+				const text = await r.text()
+				logApi("POST /flash <- status", r.status)
+				logApi("POST /flash <- body", text)
+				if (!r.ok) {
+					throw new Error(text || "flash failed")
+				}
+				clearInterval(timer)
+				bar.style.width = "100%"
+				showNotify("Completed", false)
+			} catch (e) {
+				clearInterval(timer)
+				bar.style.background = "linear-gradient(90deg, #ef4444, #dc2626)"
+				console.error("[FWM] POST /flash failed", e)
+				showNotify("Error: " + e.message, true)
+			} finally {
+				setButtonBusy("btn_download", false)
+			}
+		}
+
+		function loadFirmwareList() {
+			logApi("GET /list_fw -> send", null)
+			fetch("/list_fw")
+				.then(r => {
+					logApi("GET /list_fw <- status", r.status)
+					return r.json()
+				})
+				.then(list => {
+					logApi("GET /list_fw <- body", list)
+					let sel = document.getElementById("firmware")
+					let selAlgo = document.getElementById("algorithm")
+					let sel2 = document.getElementById("fs_files")
+					sel.innerHTML = ""
+					selAlgo.innerHTML = ""
+					sel2.innerHTML = ""
+					let hasAlgo = false
+					list.forEach(f => {
+						const lower = f.toLowerCase()
+						if (lower.endsWith(".hex") || lower.endsWith(".bin")) {
+							let o = document.createElement("option")
+							o.text = f
+							o.value = f
+							sel.add(o)
+
+							let o2 = document.createElement("option")
+							o2.text = f
+							o2.value = f
+							sel2.add(o2)
+						}
+						if (lower.endsWith(".flm")) {
+							let a = document.createElement("option")
+							a.text = f
+							a.value = f
+							selAlgo.add(a)
+							hasAlgo = true
+
+							let o2 = document.createElement("option")
+							o2.text = f
+							o2.value = f
+							sel2.add(o2)
+						}
+					})
+					if (!hasAlgo) {
+						let a = document.createElement("option")
+						a.text = "Auto detect"
+						a.value = ""
+						selAlgo.add(a)
+					}
+				})
+				.catch(e => {
+					console.error("[FWM] GET /list_fw failed", e)
+				})
+		}
+
+		async function eraseFlash() {
+			let algorithm = document.getElementById("algorithm").value
+			let addr = document.getElementById("address").value
+
+			if (!confirm("Erase entire flash target?")) {
+				return
+			}
+
+			setButtonBusy("btn_erase", true, "Erasing...")
+			showNotify("Received command: Erase", false)
+
+			const payload = { algorithm: algorithm, address: addr }
+			logApi("POST /erase -> send", payload)
+
+			let bar = document.getElementById("progress")
+			bar.style.width = "0%"
+			bar.style.background = "linear-gradient(90deg, #38bdf8, #0ea5e9)"
+			let progress = 0
+			let timer = setInterval(() => {
+				progress += 4
+				if (progress >= 85) {
+					progress = 85
+					clearInterval(timer)
+				}
+				bar.style.width = progress + "%"
+			}, 250)
+
+			try {
+				const r = await fetch("/erase", {
+					method: "POST",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify(payload)
+				})
+				const text = await r.text()
+				logApi("POST /erase <- status", r.status)
+				logApi("POST /erase <- body", text)
+				if (!r.ok) {
+					throw new Error(text || "erase failed")
+				}
+				clearInterval(timer)
+				bar.style.width = "100%"
+				showNotify("Completed", false)
+			} catch (e) {
+				clearInterval(timer)
+				bar.style.background = "linear-gradient(90deg, #ef4444, #dc2626)"
+				console.error("[FWM] POST /erase failed", e)
+				showNotify("Error: " + e.message, true)
+			} finally {
+				setButtonBusy("btn_erase", false)
+			}
+		}
+
+		async function lockChip() {
+			let lockLevel = document.getElementById("lock_level").value
+			const payload = { lock: lockLevel }
+			logApi("POST /lock -> send", payload)
+			setButtonBusy("btn_lock", true, "Locking...")
+			showNotify("Received command: Lock", false)
+
+			try {
+				const r = await fetch("/lock", {
+					method: "POST",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify(payload)
+				})
+				const text = await r.text()
+				logApi("POST /lock <- status", r.status)
+				logApi("POST /lock <- body", text)
+				if (!r.ok) {
+					throw new Error(text || "lock failed")
+				}
+				showNotify("Lock level set", false)
+			} catch (e) {
+				console.error("[FWM] POST /lock failed", e)
+				showNotify("Error: " + e.message, true)
+			} finally {
+				setButtonBusy("btn_lock", false)
+			}
+		}
+
+		function uploadFirmware() {
+			let fileInput = document.getElementById("file_input")
+			fileInput.value = ""
+			fileInput.click()
+			fileInput.onchange = async function () {
+				let file = this.files[0]
+				if (!file) return
+				const lower = file.name.toLowerCase()
+				if (!isValidBaseFileName(file.name)) {
+					showNotify("File name error", true)
+					return
+				}
+				if (!(lower.endsWith(".hex") || lower.endsWith(".bin") || lower.endsWith(".flm"))) {
+					showNotify("Only .hex, .bin, or .flm", true)
+					return
+				}
+				setButtonBusy("btn_upload", true, "Uploading...")
+				showNotify("Received command: Upload", false)
+
+				const url = "/upload_fw?name=" + encodeURIComponent(file.name)
+				logApi("POST /upload_fw -> send", { name: file.name, size: file.size, type: file.type || "application/octet-stream" })
+
+				try {
+					const r = await fetch(url, {
+						method: "POST",
+						headers: { "Content-Type": "application/octet-stream" },
+						body: file
+					})
+					const text = await r.text()
+					logApi("POST /upload_fw <- status", r.status)
+					logApi("POST /upload_fw <- body", text)
+					if (!r.ok) {
+						throw new Error(text || "upload failed")
+					}
+					let finalName = file.name
+					try {
+						const resp = JSON.parse(text)
+						if (resp && resp.name) {
+							finalName = resp.name
+						}
+					} catch (_) {}
+					await loadFirmwareList()
+					showNotify("Completed: " + finalName, false)
+				} catch (e) {
+					console.error("[FWM] POST /upload_fw failed", e)
+					showNotify("Error: " + e.message, true)
+				} finally {
+					setButtonBusy("btn_upload", false)
+				}
+
+			}
+		}
+
+		async function deleteFirmware() {
+			let f = document.getElementById("fs_files").value
+			if (!f) {
+				showNotify("No file selected", true)
+				return
+			}
+			const deletedFile = f
+
+			const payload = { file: f }
+			logApi("POST /delete_fw -> send", payload)
+			setButtonBusy("btn_delete", true, "Deleting...")
+			showNotify("Received command: Delete", false)
+
+			try {
+				const r = await fetch("/delete_fw", {
+					method: "POST",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify(payload)
+				})
+				const text = await r.text()
+				logApi("POST /delete_fw <- status", r.status)
+				logApi("POST /delete_fw <- body", text)
+				if (!r.ok) {
+					throw new Error(text || "delete failed")
+				}
+				await loadFirmwareList()
+				showNotify("Deleted: " + deletedFile, false)
+			} catch (e) {
+				console.error("[FWM] POST /delete_fw failed", e)
+				showNotify("Error: " + e.message, true)
+			} finally {
+				setButtonBusy("btn_delete", false)
+			}
+		}
+
+		function navigateTo(page) {
+			if (typeof ws !== "undefined" && ws && ws.readyState === WebSocket.OPEN) {
+				ws.close()
+			}
+			window.location.href = page
+		}
+		window.onload = () => {
+			logApi("Manual loaded", { ts: new Date().toISOString() })
+			loadFirmwareList()
+		}
+	</script>
+</body>
+</html>

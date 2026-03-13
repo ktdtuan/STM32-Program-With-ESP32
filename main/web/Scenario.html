@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Scenario Manager</title>
+
+	<style>
+		:root {
+			--bg: #020617;
+			--card: #0f172a;
+			--input: #020617;
+			--border: #1e293b;
+			--primary: #38bdf8;
+			--text: #e5e7eb;
+			--muted: #94a3b8;
+		}
+		* {
+			box-sizing: border-box;
+			font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+		}
+		body {
+			margin: 0;
+			padding: 16px;
+			background: linear-gradient(180deg, #020617, #0f172a);
+			color: var(--text);
+		}
+		.container {
+			max-width: 440px;
+			margin: auto;
+		}
+
+		.tabs {
+			display: flex;
+			background: var(--card);
+			border-radius: 12px;
+			overflow: hidden;
+			margin-bottom: 12px
+		}
+
+		.tab {
+			flex: 1;
+			text-align: center;
+			padding: 10px 0;
+			font-size: 14px;
+			color: var(--muted);
+			cursor: pointer
+		}
+
+		.tab.active {
+			background: linear-gradient(135deg, #38bdf8, #0ea5e9);
+			color: #020617;
+			font-weight: 600
+		}
+
+		h1 {
+			text-align: center;
+			font-size: 20px;
+			margin-bottom: 16px;
+			color: var(--primary);
+		}
+		.card {
+			background: var(--card);
+			border-radius: 14px;
+			padding: 16px;
+			box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+			margin-bottom: 16px;
+		}
+		.group-title {
+			font-size: 13px;
+			color: var(--primary);
+			margin-bottom: 12px;
+			text-transform: uppercase;
+		}
+		.sub-group {
+			border: 1px solid var(--border);
+			border-radius: 12px;
+			padding: 12px;
+			margin-bottom: 12px;
+		}
+		.group-grid {
+			display: grid;
+			grid-template-columns: max-content 1fr auto;
+			gap: 10px;
+			align-items: center;
+		}
+		.setup-grid .field-wide {
+			grid-column: 2 / 4;
+		}
+		.group-grid label {
+			font-size: 13px;
+			color: #cbd5f5;
+		}
+		.group-grid input,
+		.group-grid select {
+			width: 100%;
+			padding: 10px 12px;
+			border-radius: 10px;
+			border: 1px solid var(--border);
+			background: var(--input);
+			color: var(--text);
+			font-size: 14px;
+		}
+		.color-button {
+			width: 28px !important;
+			height: 28px !important;
+			padding: 0 !important;
+			min-width: 28px;
+			border-radius: 6px;
+			border: 2px solid #cbd5f5;
+			background: transparent;
+			box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.9);
+			justify-self: end;
+			cursor: pointer;
+			appearance: none;
+			-webkit-appearance: none;
+		}
+		.color-button::-webkit-color-swatch-wrapper {
+			padding: 0;
+			border-radius: 4px;
+		}
+		.color-button::-webkit-color-swatch {
+			border: none;
+			border-radius: 4px;
+		}
+		.color-button::-moz-color-swatch {
+			border: none;
+			border-radius: 4px;
+		}
+		button {
+			padding: 10px 14px;
+			border-radius: 10px;
+			border: none;
+			cursor: pointer;
+			font-weight: 600;
+			background: linear-gradient(135deg, #38bdf8, #0ea5e9);
+			color: #020617;
+		}
+		button:hover {
+			transform: translateY(-1px);
+			box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+		}
+		button:disabled {
+			opacity: 0.6;
+			cursor: not-allowed;
+			transform: none;
+			box-shadow: none;
+		}
+		.btn-danger {
+			background: linear-gradient(135deg, #ef4444, #dc2626);
+			color: #fff;
+		}
+		.notify-wrap {
+			position: fixed;
+			top: 12px;
+			left: 50%;
+			transform: translateX(-50%);
+			z-index: 1000;
+			pointer-events: none;
+		}
+		.notify {
+			display: none;
+			padding: 10px 14px;
+			border-radius: 10px;
+			font-size: 13px;
+			font-weight: 600;
+			color: #e5e7eb;
+			background: #0f172a;
+			border: 1px solid #334155;
+			box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
+		}
+		.notify.error {
+			background: #7f1d1d;
+			border-color: #ef4444;
+		}
+		.notify.ok {
+			background: #14532d;
+			border-color: #22c55e;
+		}
+		.setup-actions {
+			display: flex;
+			justify-content: center;
+			gap: 10px;
+			margin-top: 10px;
+		}
+		.setup-actions button {
+			height: 42px;
+			width: 92px;
+		}
+		.footer {
+			text-align: center;
+			font-size: 11px;
+			opacity: .5;
+			margin-top: 10px;
+		}
+	</style>
+</head>
+<body>
+	<div class="notify-wrap">
+		<div id="notify" class="notify"></div>
+	</div>
+	<div class="container">
+		<h1>Scenario Manager</h1>
+
+        <div class="tabs">
+			<div class="tab" onclick="navigateTo('Dashboard.html')">Dashboard</div>
+			<div class="tab active">Scenario</div>
+			<div class="tab" onclick="navigateTo('Manual.html')">Manual</div>
+		</div>
+
+		<div class="card">
+			<div class="group-title">Scenario Management</div>
+			<div class="sub-group">
+				<div class="group-grid setup-grid">
+					<label>List scenario</label>
+					<select id="scenario_list"></select>
+				</div>
+				<div class="setup-actions">
+					<button id="btn_upload_scn" onclick="uploadScenario()">Upload</button>
+					<button id="btn_edit_scn" onclick="editScenario()">Edit</button>
+					<button id="btn_delete_scn" class="btn-danger" onclick="deleteScenario()">Delete</button>
+				</div>
+				
+				<input type="file" id="scenario_file_input" accept=".json" style="display:none">
+			</div>
+		</div>
+
+		<div class="card">
+			<div class="group-title">Scenario Creation</div>
+			<div class="sub-group">
+				<div class="group-grid setup-grid">
+					<label>Name scenario</label>
+					<input id="name" placeholder="Ex: g071_release">
+					<input id="color" class="color-button" type="color" value="#fd6bff" title="Choose color">
+					<label>Firmware</label>
+					<select id="firmware" class="field-wide"></select>
+					<label>Address</label>
+					<input id="address" class="field-wide" value="0x08000000">
+					<label>File DLM</label>
+					<select id="dlm" class="field-wide"></select>
+                    <label>Lock Chip</label>
+					<select id="lock" class="field-wide">
+						<option value="0" selected>Level 0 (Unlock)</option>
+						<option value="1">Level 1 (Read Protect)</option>
+						<option value="2">Level 2 (Permanent Lock)</option>
+					</select>
+				</div>
+				<div class="setup-actions">
+					<button id="btn_save_scn" onclick="saveScenario()">Save</button>
+				</div>
+			</div>
+		</div>
+
+		<div class="footer">Scenario Manager · ESP32</div>
+	</div>
+
+	<script>
+		let notifyTimer = null
+		let scenarioMap = {}
+		let scenarioUploadBusy = false
+
+		function logApi(tag, payload) {
+			console.log("[SCN] " + tag, payload)
+		}
+
+		function showNotify(text, isError) {
+			const el = document.getElementById("notify")
+			if (!el || !text) {
+				return
+			}
+			el.textContent = text
+			el.className = "notify " + (isError ? "error" : "ok")
+			el.style.display = "block"
+			if (notifyTimer) {
+				clearTimeout(notifyTimer)
+			}
+			notifyTimer = setTimeout(function () {
+				el.style.display = "none"
+			}, 2200)
+		}
+
+		function hasExtension(name, ext) {
+			return !!name && name.toLowerCase().endsWith(ext)
+		}
+
+		function isValidBaseFileName(name) {
+			return typeof name === "string" && /^[A-Za-z0-9._-]+$/.test(name)
+		}
+
+		function setButtonBusy(buttonId, busy, busyText) {
+			const btn = document.getElementById(buttonId)
+			if (!btn) {
+				return
+			}
+			if (busy) {
+				if (!btn.dataset.originalText) {
+					btn.dataset.originalText = btn.textContent
+				}
+				btn.disabled = true
+				btn.textContent = busyText || "Processing..."
+			} else {
+				btn.disabled = false
+				btn.textContent = btn.dataset.originalText || btn.textContent
+			}
+		}
+
+		function normalizeScenarioFileName(name) {
+			if (!name) {
+				return ""
+			}
+			const normalized = name.trim()
+			if (!normalized) {
+				return ""
+			}
+			return hasExtension(normalized, ".json") ? normalized : (normalized + ".json")
+		}
+
+		function displayScenarioName(fileName) {
+			if (!fileName) {
+				return ""
+			}
+			return hasExtension(fileName, ".json") ? fileName.slice(0, -5) : fileName
+		}
+
+		async function loadFirmwareList() {
+			logApi("GET /list_fw -> send", null)
+			const r = await fetch("/list_fw")
+			if (!r.ok) {
+				throw new Error("load firmware list failed")
+			}
+			const list = await r.json()
+			logApi("GET /list_fw <- body", list)
+
+			const fwSel = document.getElementById("firmware")
+			const flmSel = document.getElementById("dlm")
+			const selectedFw = fwSel.value
+			const selectedFlm = flmSel.value
+
+			fwSel.innerHTML = ""
+			flmSel.innerHTML = ""
+
+			let hasFw = false
+			let hasFlm = false
+			list.forEach(function (f) {
+				const lower = String(f).toLowerCase()
+				if (lower.endsWith(".hex") || lower.endsWith(".bin")) {
+					const o = document.createElement("option")
+					o.value = f
+					o.text = f
+					fwSel.add(o)
+					hasFw = true
+				}
+				if (lower.endsWith(".flm")) {
+					const o = document.createElement("option")
+					o.value = f
+					o.text = f
+					flmSel.add(o)
+					hasFlm = true
+				}
+			})
+
+			if (!hasFw) {
+				const o = document.createElement("option")
+				o.value = ""
+				o.text = "(Khong co firmware)"
+				fwSel.add(o)
+			}
+			if (!hasFlm) {
+				const o = document.createElement("option")
+				o.value = ""
+				o.text = "Auto detect"
+				flmSel.add(o)
+			}
+
+			if (selectedFw) {
+				fwSel.value = selectedFw
+			}
+			if (selectedFlm) {
+				flmSel.value = selectedFlm
+			}
+		}
+
+		async function loadScenarioList(selectedName) {
+			logApi("GET /list_scenario -> send", null)
+			const r = await fetch("/list_scenario")
+			if (!r.ok) {
+				throw new Error("load scenario list failed")
+			}
+			const list = await r.json()
+			logApi("GET /list_scenario <- body", list)
+
+			scenarioMap = {}
+			const sel = document.getElementById("scenario_list")
+			sel.innerHTML = ""
+
+			list.forEach(function (f) {
+				const name = displayScenarioName(f)
+				scenarioMap[name] = f
+
+				const option = document.createElement("option")
+				option.value = f
+				option.text = name
+				sel.add(option)
+			})
+
+			if (selectedName) {
+				sel.value = selectedName
+			}
+		}
+
+		function fillFormFromScenario(data, fileName) {
+			document.getElementById("name").value = displayScenarioName(fileName || "")
+			document.getElementById("firmware").value = data.firmware || ""
+			document.getElementById("address").value = data.address || "0x08000000"
+			document.getElementById("dlm").value = data.dlm || ""
+			document.getElementById("color").value = data.color || "#38bdf8"
+			document.getElementById("lock").value = String(data.lock != null ? data.lock : 0)
+		}
+
+		async function saveScenario() {
+			const nameInput = document.getElementById("name").value
+			const normalizedInput = (nameInput || "").trim()
+			if (!normalizedInput || !isValidBaseFileName(normalizedInput)) {
+				showNotify("File name error", true)
+				return
+			}
+			const fileName = normalizeScenarioFileName(nameInput)
+			if (!fileName) {
+				showNotify("Name Error", true)
+				return
+			}
+			setButtonBusy("btn_save_scn", true, "Saving...")
+			showNotify("Received command: Save", false)
+
+			const payload = {
+				name: fileName,
+				firmware: document.getElementById("firmware").value || "",
+				address: document.getElementById("address").value || "0x08000000",
+				dlm: document.getElementById("dlm").value || "",
+				color: document.getElementById("color").value || "#38bdf8",
+				lock: document.getElementById("lock").value
+			}
+
+			logApi("POST /scenario_save -> send", payload)
+			try {
+				const r = await fetch("/scenario_save", {
+					method: "POST",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify(payload)
+				})
+				const text = await r.text()
+				logApi("POST /scenario_save <- status", r.status)
+				logApi("POST /scenario_save <- body", text)
+				if (!r.ok) {
+					throw new Error(text || "save failed")
+				}
+				await loadScenarioList(fileName)
+				showNotify("Successful", false)
+			} catch (e) {
+				console.error("[SCN] save failed", e)
+				showNotify("Error: " + e.message, true)
+			} finally {
+				setButtonBusy("btn_save_scn", false)
+			}
+		}
+
+		async function editScenario() {
+			const selected = document.getElementById("scenario_list").value
+			if (!selected) {
+				showNotify("No file", true)
+				return
+			}
+
+			const url = "/scenario_get?name=" + encodeURIComponent(selected)
+			logApi("GET /scenario_get -> send", { name: selected })
+			setButtonBusy("btn_edit_scn", true, "Loading...")
+			showNotify("Received command: Edit", false)
+			try {
+				const r = await fetch(url)
+				const text = await r.text()
+				logApi("GET /scenario_get <- status", r.status)
+				logApi("GET /scenario_get <- body", text)
+				if (!r.ok) {
+					throw new Error(text || "load failed")
+				}
+				fillFormFromScenario(JSON.parse(text), selected)
+			} catch (e) {
+				console.error("[SCN] edit failed", e)
+				showNotify("Error: " + e.message, true)
+			} finally {
+				setButtonBusy("btn_edit_scn", false)
+			}
+		}
+
+		async function deleteScenario() {
+			const selected = document.getElementById("scenario_list").value
+			if (!selected) {
+				showNotify("No file", true)
+				return
+			}
+			if (!confirm("Delete selected scenario?")) {
+				return
+			}
+
+			const payload = { file: selected }
+			logApi("POST /scenario_delete -> send", payload)
+			setButtonBusy("btn_delete_scn", true, "Deleting...")
+			showNotify("Received command: Delete", false)
+			try {
+				const r = await fetch("/scenario_delete", {
+					method: "POST",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify(payload)
+				})
+				const text = await r.text()
+				logApi("POST /scenario_delete <- status", r.status)
+				logApi("POST /scenario_delete <- body", text)
+				if (!r.ok) {
+					throw new Error(text || "delete failed")
+				}
+				await loadScenarioList("")
+				showNotify("Successful", false)
+			} catch (e) {
+				console.error("[SCN] delete failed", e)
+				showNotify("Error: " + e.message, true)
+			} finally {
+				setButtonBusy("btn_delete_scn", false)
+			}
+		}
+
+		function uploadScenario() {
+			if (scenarioUploadBusy) {
+				return
+			}
+			const fileInput = document.getElementById("scenario_file_input")
+			if (!fileInput) {
+				return
+			}
+			fileInput.value = ""
+			fileInput.click()
+		}
+
+		async function handleScenarioUpload(file) {
+			if (!file) {
+				return
+			}
+			if (!isValidBaseFileName(file.name)) {
+				showNotify("File name error", true)
+				return
+			}
+			if (!hasExtension(file.name, ".json")) {
+				showNotify("Only .json files are allowed", true)
+				return
+			}
+
+			const uploadNameInput = document.getElementById("upload_file")
+			if (uploadNameInput) {
+				uploadNameInput.value = file.name
+			}
+			const url = "/upload_scenario?name=" + encodeURIComponent(file.name)
+			logApi("POST /upload_scenario -> send", { name: file.name, size: file.size })
+
+			scenarioUploadBusy = true
+			setButtonBusy("btn_upload_scn", true, "Uploading...")
+			showNotify("Received command: Upload", false)
+			try {
+				const r = await fetch(url, {
+					method: "POST",
+					headers: { "Content-Type": "application/json" },
+					body: file
+				})
+				const text = await r.text()
+				logApi("POST /upload_scenario <- status", r.status)
+				logApi("POST /upload_scenario <- body", text)
+				if (!r.ok) {
+					throw new Error(text || "upload failed")
+				}
+				await loadScenarioList(file.name)
+				showNotify("Successful", false)
+			} catch (e) {
+				console.error("[SCN] upload failed", e)
+				showNotify("Error: " + e.message, true)
+			} finally {
+				scenarioUploadBusy = false
+				setButtonBusy("btn_upload_scn", false)
+			}
+		}
+
+		function navigateTo(page) {
+			if (typeof ws !== "undefined" && ws && ws.readyState === WebSocket.OPEN) {
+				ws.close()
+			}
+			window.location.href = page
+		}
+        
+		window.onload = async function () {
+			logApi("Scenario loaded", { ts: new Date().toISOString() })
+
+			const fileInput = document.getElementById("scenario_file_input")
+			if (fileInput) {
+				fileInput.onchange = function () {
+					if (this.files && this.files[0]) {
+						handleScenarioUpload(this.files[0])
+					}
+				}
+			}
+
+			try {
+				await loadFirmwareList()
+				await loadScenarioList("")
+			} catch (e) {
+				console.error("[SCN] init failed", e)
+				showNotify("Initialization Error: " + e.message, true)
+			}
+		}
+	</script>
+</body>
+</html>

@@ -1,0 +1,8 @@
+
+{
+    "firmware": "Application.bin",
+    "address": "0x08000000",
+    "dlm": "STM32G0xx_128.FLM",
+    "lock": 0,
+    "color": "#00FF00"
+}

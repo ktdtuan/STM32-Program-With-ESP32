@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Scenario Dashboard</title>
+
+	<style>
+		:root {
+			--bg: #020617;
+			--card: #0f172a;
+			--input: #020617;
+			--border: #1e293b;
+			--primary: #38bdf8;
+			--text: #e5e7eb;
+			--muted: #94a3b8;
+		}
+
+		* {
+			box-sizing: border-box;
+			font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+		}
+
+		body {
+			margin: 0;
+			padding: 16px;
+			background: linear-gradient(180deg, #020617, #0f172a);
+			color: var(--text);
+		}
+
+		.container {
+			max-width: 440px;
+			margin: auto;
+		}
+		.tabs {
+			display: flex;
+			background: var(--card);
+			border-radius: 12px;
+			overflow: hidden;
+			margin-bottom: 12px;
+		}
+		.tab {
+			flex: 1;
+			text-align: center;
+			padding: 10px 0;
+			font-size: 14px;
+			color: var(--muted);
+			cursor: pointer;
+		}
+		.tab.active {
+			background: linear-gradient(135deg, #38bdf8, #0ea5e9);
+			color: #020617;
+			font-weight: 600;
+		}
+
+		.tabs {
+			display: flex;
+			background: var(--card);
+			border-radius: 12px;
+			overflow: hidden;
+			margin-bottom: 12px
+		}
+
+		.tab {
+			flex: 1;
+			text-align: center;
+			padding: 10px 0;
+			font-size: 14px;
+			color: var(--muted);
+			cursor: pointer
+		}
+
+		.tab.active {
+			background: linear-gradient(135deg, #38bdf8, #0ea5e9);
+			color: #020617;
+			font-weight: 600
+		}
+
+		h1 {
+			text-align: center;
+			font-size: 20px;
+			margin-bottom: 16px;
+			color: var(--primary);
+		}
+
+		.card {
+			background: var(--card);
+			border-radius: 14px;
+			padding: 16px;
+			box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+			margin-bottom: 16px;
+		}
+
+		.group-title {
+			font-size: 13px;
+			color: var(--primary);
+			margin-bottom: 12px;
+			text-transform: uppercase;
+		}
+
+		.sub-group {
+			border: 1px solid var(--border);
+			border-radius: 12px;
+			padding: 12px;
+			margin-bottom: 12px;
+		}
+
+		button {
+			padding: 10px 14px;
+			border-radius: 10px;
+			border: none;
+			cursor: pointer;
+			font-weight: 600;
+			background: linear-gradient(135deg, #38bdf8, #0ea5e9);
+			color: #020617;
+		}
+
+		button:hover {
+			transform: translateY(-1px);
+			box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+		}
+		.scenario-list {
+			display: grid;
+			gap: 10px;
+		}
+		.scenario-btn {
+			width: 100%;
+			height: 44px;
+		}
+		.run-status {
+			margin-top: 12px;
+			border-top: 1px solid var(--border);
+			padding-top: 10px;
+			font-size: 13px;
+		}
+		.run-title {
+			font-weight: 700;
+			margin-bottom: 8px;
+		}
+		.step-list {
+			display: grid;
+			gap: 6px;
+		}
+		.step-item {
+			padding: 8px 10px;
+			border-radius: 8px;
+			border: 1px solid #334155;
+			background: #0b1220;
+		}
+		.step-item.ok {
+			border-color: #22c55e;
+		}
+		.step-item.fail {
+			border-color: #ef4444;
+		}
+		.step-name {
+			font-weight: 700;
+			text-transform: uppercase;
+			font-size: 11px;
+			letter-spacing: .3px;
+			margin-bottom: 2px;
+		}
+		.empty {
+			font-size: 13px;
+			color: var(--muted);
+			text-align: center;
+			padding: 8px 0;
+		}
+		.notify-wrap {
+			position: fixed;
+			top: 12px;
+			left: 50%;
+			transform: translateX(-50%);
+			z-index: 1000;
+			pointer-events: none;
+		}
+		.notify {
+			display: none;
+			padding: 10px 14px;
+			border-radius: 10px;
+			font-size: 13px;
+			font-weight: 600;
+			color: #e5e7eb;
+			background: #0f172a;
+			border: 1px solid #334155;
+			box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
+		}
+		.notify.error {
+			background: #7f1d1d;
+			border-color: #ef4444;
+		}
+		.notify.ok {
+			background: #14532d;
+			border-color: #22c55e;
+		}
+
+		.footer {
+			text-align: center;
+			font-size: 11px;
+			opacity: .5;
+			margin-top: 10px;
+		}
+	</style>
+</head>
+
+<body>
+	<div class="notify-wrap">
+		<div id="notify" class="notify"></div>
+	</div>
+
+	<div class="container">
+		<h1>Scenario Dashboard</h1>
+
+		<div class="tabs">
+			<div class="tab active">Dashboard</div>
+			<div class="tab" onclick="navigateTo('Scenario.html')">Scenario</div>
+			<div class="tab" onclick="navigateTo('Manual.html')">Manual</div>
+		</div>
+
+		<div class="card">
+			<div class="group-title">Scenario Quick Run</div>
+			<div class="sub-group">
+				<div id="scenario_buttons" class="scenario-list"></div>
+				<div id="run_status" class="run-status"></div>
+			</div>
+		</div>
+
+		<div class="footer">Scenario Dashboard · ESP32</div>
+	</div>
+
+	<script>
+		let notifyTimer = null
+
+		function logApi(tag, payload) {
+			console.log("[DASH] " + tag, payload)
+		}
+
+		function showNotify(text, isError) {
+			const el = document.getElementById("notify")
+			if (!el || !text) {
+				return
+			}
+			el.textContent = text
+			el.className = "notify " + (isError ? "error" : "ok")
+			el.style.display = "block"
+			if (notifyTimer) {
+				clearTimeout(notifyTimer)
+			}
+			notifyTimer = setTimeout(function () {
+				el.style.display = "none"
+			}, 2200)
+		}
+
+		function displayScenarioName(fileName) {
+			if (!fileName) {
+				return ""
+			}
+			return fileName.toLowerCase().endsWith(".json") ? fileName.slice(0, -5) : fileName
+		}
+
+		function isHexColor(value) {
+			return typeof value === "string" && /^#[0-9a-fA-F]{6}$/.test(value)
+		}
+
+		function buttonTextColor(hexColor) {
+			if (!isHexColor(hexColor)) {
+				return "#020617"
+			}
+			const r = parseInt(hexColor.slice(1, 3), 16)
+			const g = parseInt(hexColor.slice(3, 5), 16)
+			const b = parseInt(hexColor.slice(5, 7), 16)
+			const luminance = 0.299 * r + 0.587 * g + 0.114 * b
+			return luminance > 160 ? "#0f172a" : "#f8fafc"
+		}
+
+		function renderRunStatus(result, scenarioName) {
+			const el = document.getElementById("run_status")
+			if (!el) {
+				return
+			}
+
+			if (!result) {
+				el.innerHTML = ""
+				return
+			}
+
+			const title = document.createElement("div")
+			title.className = "run-title"
+			title.textContent = (result.ok ? "Completed: " : "Failed: ") + (scenarioName || result.scenario || "")
+			el.innerHTML = ""
+			el.appendChild(title)
+
+			const list = document.createElement("div")
+			list.className = "step-list"
+
+			const steps = Array.isArray(result.steps) ? result.steps : []
+			if (steps.length === 0) {
+				const empty = document.createElement("div")
+				empty.className = "empty"
+				empty.textContent = result.message || "No step details"
+				el.appendChild(empty)
+				return
+			}
+
+			steps.forEach(function (step) {
+				const item = document.createElement("div")
+				item.className = "step-item " + (step && step.ok ? "ok" : "fail")
+
+				const name = document.createElement("div")
+				name.className = "step-name"
+				name.textContent = (step && step.step ? step.step : "step") + (step && step.ok ? " - OK" : " - FAIL")
+
+				const msg = document.createElement("div")
+				msg.textContent = step && step.message ? step.message : ""
+
+				item.appendChild(name)
+				item.appendChild(msg)
+				list.appendChild(item)
+			})
+
+			el.appendChild(list)
+		}
+
+		async function loadScenarioButtons() {
+			const wrap = document.getElementById("scenario_buttons")
+			if (!wrap) {
+				return
+			}
+
+			wrap.innerHTML = '<div class="empty">Loading...</div>'
+			logApi("GET /list_scenario -> send", null)
+
+			try {
+				const r = await fetch("/list_scenario")
+				if (!r.ok) {
+					throw new Error("load scenario list failed")
+				}
+				const list = await r.json()
+				logApi("GET /list_scenario <- body", list)
+
+				const names = (Array.isArray(list) ? list : [])
+					.filter(function (name) { return typeof name === "string" && name.toLowerCase().endsWith(".json") })
+					.sort(function (a, b) { return a.localeCompare(b) })
+
+				wrap.innerHTML = ""
+				if (names.length === 0) {
+					wrap.innerHTML = '<div class="empty">No scenario files</div>'
+					return
+				}
+
+				const detailMap = {}
+				const details = await Promise.all(names.map(async function (name) {
+					try {
+						const rDetail = await fetch("/scenario_get?name=" + encodeURIComponent(name))
+						if (!rDetail.ok) {
+							return { name: name, color: "#38bdf8" }
+						}
+						const data = await rDetail.json()
+						return { name: name, color: data && data.color }
+					} catch (_) {
+						return { name: name, color: "#38bdf8" }
+					}
+				}))
+				details.forEach(function (item) {
+					detailMap[item.name] = isHexColor(item.color) ? item.color : "#38bdf8"
+				})
+
+				names.forEach(function (name) {
+					const btn = document.createElement("button")
+					btn.className = "scenario-btn"
+					btn.textContent = displayScenarioName(name)
+					btn.style.background = detailMap[name] || "#38bdf8"
+					btn.style.color = buttonTextColor(detailMap[name] || "#38bdf8")
+					btn.onclick = function () {
+						runScenario(name)
+					}
+					wrap.appendChild(btn)
+				})
+			} catch (e) {
+				console.error("[DASH] load buttons failed", e)
+				wrap.innerHTML = '<div class="empty">Load failed</div>'
+				showNotify("Error: " + e.message, true)
+			}
+		}
+
+		async function runScenario(fileName) {
+			const payload = { scenario: fileName }
+			logApi("POST /dashboard_run -> send", payload)
+			renderRunStatus({ ok: true, message: "Running...", steps: [{ step: "start", ok: true, message: "Executing scenario" }] }, fileName)
+
+			try {
+				const r = await fetch("/dashboard_run", {
+					method: "POST",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify(payload)
+				})
+				const text = await r.text()
+				logApi("POST /dashboard_run <- status", r.status)
+				logApi("POST /dashboard_run <- body", text)
+
+				let data = null
+				try {
+					data = JSON.parse(text)
+				} catch (_) {
+					data = { ok: false, message: text || "run request failed", steps: [] }
+				}
+
+				renderRunStatus(data, fileName)
+				if (!r.ok || !data.ok) {
+					throw new Error((data && data.message) ? data.message : (text || "run request failed"))
+				}
+				showNotify(data.message || "Completed", false)
+			} catch (e) {
+				console.error("[DASH] run failed", e)
+				showNotify("Error: " + e.message, true)
+			}
+		}
+
+		function navigateTo(page) {
+			if (typeof ws !== "undefined" && ws && ws.readyState === WebSocket.OPEN) {
+				ws.close()
+			}
+			window.location.href = page
+		}
+
+		window.onload = function () {
+			logApi("Dashboard loaded", { ts: new Date().toISOString() })
+			loadScenarioButtons()
+		}
+	</script>
+</body>
+</html>
