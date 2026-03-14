@@ -71,7 +71,12 @@ Ví dụ scenario:
 }
 ```
 
-### 3.3 Dashboard page
+### 3.3 Tải File FLM
+Bạn có thể tải các gói CMSIS-Pack và file thuật toán `.flm` tại:
+
+- https://github.com/Open-CMSIS-Pack
+
+### 3.4 Dashboard page
 - Mặc định route `/` trỏ vào Dashboard.
 - Nút scenario được tô màu theo `color` trong file scenario.
 - Khi chạy scenario, backend thực thi tuần tự các bước:
